@@ -19,7 +19,7 @@ services:
     depends_on:
       - ollama-server
   ollama-server:
-    image: redis:latest
+    image: ollama:/root/.ollama:latest
     container_name: azura-db
     restart: always
     ports:
