@@ -10,9 +10,10 @@ from aiogram.filters.command import CommandStart
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import Message
 token = os.environ['TOKEN']
-uid_get = os.environ['ADMIN_IDS'].split(",")
+uid_get = os.environ['USER_IDS'].split(",")
 allowed_ids = [int(x) for x in uid_get]
-idsu_env = os.environ['USER_IDS']
+aid_get = os.environ['USER_IDS']
+admin_ids = [int(x) for x in aid_get]
 modelname = os.environ['INITMODEL']
 if token == "yourtoken":
     print("Uh-Oh!\nPlease enter your Telegram bot TOKEN in .env file")
@@ -39,25 +40,28 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.callback_query(lambda query: query.data == 'modelmanager')
 async def modelmanager_callback_handler(query: types.CallbackQuery):
-    try:
-        models = await fetch_models()
+    if query.from_user.id in admin_ids:
+        try:
+            models = await fetch_models()
 
-        # Create a new InlineKeyboardBuilder for the fetched models
-        modelmanager_builder = InlineKeyboardBuilder()
-        for model in models:
-            modelname = model['name']
-            # Add a button for each model
-            modelmanager_builder.row(
-                types.InlineKeyboardButton(text=modelname, callback_data=f"model_{modelname}")
+            # Create a new InlineKeyboardBuilder for the fetched models
+            modelmanager_builder = InlineKeyboardBuilder()
+            for model in models:
+                modelname = model['name']
+                # Add a button for each model
+                modelmanager_builder.row(
+                    types.InlineKeyboardButton(text=modelname, callback_data=f"model_{modelname}")
+                )
+
+            # Send a new message with the new keyboard or edit the existing message
+            await query.message.edit_text(
+                "Choose model:",
+                reply_markup=modelmanager_builder.as_markup()
             )
-
-        # Send a new message with the new keyboard or edit the existing message
-        await query.message.edit_text(
-            "Choose model:",
-            reply_markup=modelmanager_builder.as_markup()
-        )
-    except:
-        await query.message.edit_text("<b>[Ollama-API ERROR]</b>\nNON_DOCKER: Make sure your Ollama API server is running ('ollama serve' command).\nDOCKER: Check Ollama container and try again", parse_mode="HTML")
+        except:
+            await query.message.edit_text("<b>[Ollama-API ERROR]</b>\nNON_DOCKER: Make sure your Ollama API server is running ('ollama serve' command).\nDOCKER: Check Ollama container and try again", parse_mode="HTML")
+    else:
+        await query.answer("Access Denied")
 
 @dp.callback_query(lambda query: query.data.startswith('model_'))
 async def model_callback_handler(query: types.CallbackQuery):
@@ -69,11 +73,13 @@ async def model_callback_handler(query: types.CallbackQuery):
 
 @dp.callback_query(lambda query: query.data == 'info')
 async def systeminfo_callback_handler(query: types.CallbackQuery):
-    # Handle the callback query for button1 here
-    await query.answer("Fetching info...")
-    await bot.send_message(chat_id=query.message.chat.id,
-                           text=f"<b>📦 About System</b>\n⚙️ Current model: <code>{modelname}</code>\n<i>(Other options will be added soon..)</i>",
-                           parse_mode="HTML")
+    if query.from_user.id in admin_ids:
+        await query.answer("Fetching info...")
+        await bot.send_message(chat_id=query.message.chat.id,
+                               text=f"<b>📦 About System</b>\n⚙️ Current model: <code>{modelname}</code>\n<i>(Other options will be added soon..)</i>",
+                               parse_mode="HTML")
+    else:
+        await query.answer("Access Denied")
 
 def escape_html(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
