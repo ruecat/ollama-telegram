@@ -1,0 +1,26 @@
+# WORK IN PROGRESS
+version: '3.8'
+services:
+  ollama-telegram:
+    build: bot
+    container_name: ollama-telegram
+    restart: no
+    volumes:
+      - ./ollama-telegram-dockerized:/app
+    hostname: azura-dockerized
+    environment:
+      # Necessary, your Bot token, you can get it from @BotFather
+      - TOKEN=''
+      # Get your Telegram ID
+      - ADMIN_IDS=''
+      - USER_IDS=''
+      # Set your default model [You can change it after, using /start -> Change Model]
+      - INITMODEL=''
+    depends_on:
+      - ollama-server
+  ollama-server:
+    image: redis:latest
+    container_name: azura-db
+    restart: always
+    ports:
+      - '11434:11434'

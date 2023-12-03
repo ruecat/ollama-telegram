@@ -25,29 +25,14 @@ Here's features that you get out of the box:
 - [x] Scam-links detection with no false-positives
 
 ## Roadmap
+- [ ] Proper Docker Config (Broken at the moment)
 - [ ] Implement **history** [Bot can't remember more that 1 prompt]
 - [ ] Add more API-related functions
 - [ ] Redis DB integration
 
 ## Prerequisites
-- [Docker](https://github.com/docker)
-- [Docker-Compose](https://github.com/docker/compose)
 - [Telegram-Bot Token](https://core.telegram.org/bots#6-botfather)
-## Installation (Docker-Compose)
-+ Clone Repository
-```
-git clone https://github.com/ruecat/ollama-telegram
-```
-+ Edit TOKEN variable in [docker-compose.yml](https://github.com/ruecat/ollama-telegram/blob/main/docker-compose.yml) environment
-```env
-environment:
-    - TOKEN=yourtoken
-```
-+ Run docker-compose
-```
-docker-compose up -d
-```
-+ You are all set!
+
 ## Installation (Non-Docker)
 + Install latest [Python](https://python.org/downloads)
 + Clone Repository
@@ -58,10 +43,18 @@ git clone https://github.com/ruecat/ollama-telegram
 ```
 pip install -r requirements.txt
 ```
++ Enter all values in .env.example
+
++ Rename .env.example -> .env
+
 + Launch bot
+
 ```
 python3 ollama-run.py
 ```
+## Installation (Docker)
+Soon..
+
 ## Environment Configuration
 |  Parameter  |                                                      Description                                                      | Required? | Default Value |                        Example                        |
 |:-----------:|:---------------------------------------------------------------------------------------------------------------------:|:---------:|:-------------:|:-----------------------------------------------------:|
