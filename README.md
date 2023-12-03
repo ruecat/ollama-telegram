@@ -22,7 +22,7 @@ Here's features that you get out of the box:
 
 - [x] Fully dockerized bot
 - [x] Response streaming without ratelimit with **SentenceBySentence** method
-- [x] Scam-links detection with no false-positives
+- [x] Mention [@] bot in group to receive answer
 
 ## Roadmap
 - [ ] Proper Docker Config (Broken at the moment)
