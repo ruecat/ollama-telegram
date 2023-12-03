@@ -64,7 +64,7 @@ Soon..
 | `INITMODEL` |                                                      Default LLM                                                      |    No     |   `llama2`    |        mistral:latest<br/>mistral:7b-instruct         |
 
 ## Credits
-+ [Ollama](https://github.com/ruecat/ollama)
++ [Ollama](https://github.com/jmorganca/ollama)
 
 ## Libraries used
 + [Aiogram 3.x](https://github.com/aiogram/aiogram)
