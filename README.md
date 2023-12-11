@@ -6,7 +6,6 @@
   <h1>🦙 Ollama Telegram Bot</h1>
   <p>
     <b>Chat with your LLM, using Telegram bot!</b><br>
-    <b>🚧 Project is still WIP 🚧</b><br>
     <b>Feel free to contribute!</b><br>
   </p>
   <br>
