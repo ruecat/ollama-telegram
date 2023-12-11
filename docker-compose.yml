@@ -7,7 +7,6 @@ services:
       dockerfile: dockerfile
     container_name: ollama-telegram
     restart: no
-    hostname: azura-dockerized
     env_file:
       - ./.env
   
