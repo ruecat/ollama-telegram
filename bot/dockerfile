@@ -1,7 +1,0 @@
-FROM python:3.13-rc-slim-bookworm
-WORKDIR /core
-RUN apt update -y && apt upgrade -y && apt install cargo -y
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
-COPY . .
-CMD [ "python3", "-u", "ollama-run.py"]
