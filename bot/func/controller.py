@@ -27,7 +27,6 @@ async def fetcher():
 async def streamer(prompt: str, modelname: str):
     # try:
     async with aiohttp.ClientSession() as session:
-        print("Api triggered")
         url = f'http://{ollama_base_url}:11434/api/generate'
         # content.append(prompt)
         # print(f'Content updated: {content}')
@@ -45,7 +44,3 @@ async def streamer(prompt: str, modelname: str):
                     decoded_chunk = chunk.decode()
                     if decoded_chunk.strip():
                         yield json.loads(decoded_chunk)
-
-
-# except:
-#     print("---------\n[Ollama-API ERROR]\nNON_DOCKER: Make sure your Ollama API server is running ('ollama serve' command)\nDOCKER: Check Ollama container and try again\n---------")
