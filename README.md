@@ -11,8 +11,8 @@
   </p>
   <br>
   <p align="center">
+    <img src="https://img.shields.io/docker/pulls/ruecat/ollama-aiogram?style=for-the-badge"><br>
     <img src="https://img.shields.io/github/downloads/ruecat/ollama-telegram/total?style=for-the-badge&label=GitHub Downloads&color=52489C">
-    <img src="https://img.shields.io/docker/pulls/ruecat/ollama-aiogram?style=for-the-badge">
   </p>
   <br>
 </div>
@@ -25,10 +25,10 @@ Here's features that you get out of the box:
 - [x] Mention [@] bot in group to receive answer
 
 ## Roadmap
-- [ ] Proper Docker Config (Broken at the moment)
-- [ ] Implement **history** [Bot can't remember more that 1 prompt]
-- [ ] Add more API-related functions
+- [x] Proper Docker Config
+- [ ] Add more API-related functions [System Prompt Editor, Ollama Version fetcher, etc.]
 - [ ] Redis DB integration
+- [ ] Implement **history** [Bot can't remember more that 1 prompt]
 
 ## Prerequisites
 - [Telegram-Bot Token](https://core.telegram.org/bots#6-botfather)
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 ```
 python3 run.py
 ```
-## Installation (Docker)
+## Installation (Docker-Compose)
 + Clone Repository
 ```
 git clone https://github.com/ruecat/ollama-telegram
@@ -68,7 +68,7 @@ git clone https://github.com/ruecat/ollama-telegram
     docker compose up --build -d
     ```
 
-    2. To run ollama from locally insatlled instance (mainly for MacOS, since docker image doesn't support Apple GPU acceleration yet):
+    2. To run ollama from locally installed instance (mainly for **MacOS**, since docker image doesn't support Apple GPU acceleration yet):
     ```
     docker compose up --build -d ollama-telegram
     ```
