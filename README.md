@@ -50,10 +50,28 @@ pip install -r requirements.txt
 + Launch bot
 
 ```
-python3 ollama-run.py
+python3 run.py
 ```
 ## Installation (Docker)
-Soon..
++ Clone Repository
+```
+git clone https://github.com/ruecat/ollama-telegram
+```
+
++ Enter all values in .env.example
+
++ Rename .env.example -> .env
+
++ Run ONE of the following docker compose commands to start:
+    1. To run ollama in docker container (optionally: uncomment GPU part of docker-compose.yml file to enable Nvidia GPU)
+    ```
+    docker compose up --build -d
+    ```
+
+    2. To run ollama from locally insatlled instance (mainly for MacOS, since docker image doesn't support Apple GPU acceleration yet):
+    ```
+    docker compose up --build -d ollama-telegram
+    ```
 
 ## Environment Configuration
 |  Parameter  |                                                      Description                                                      | Required? | Default Value |                        Example                        |

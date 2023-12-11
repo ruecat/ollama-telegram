@@ -2,25 +2,32 @@
 version: '3.8'
 services:
   ollama-telegram:
-    build: bot
+    build:
+      context: .
+      dockerfile: dockerfile
     container_name: ollama-telegram
     restart: no
-    volumes:
-      - ./ollama-telegram-dockerized:/app
     hostname: azura-dockerized
-    environment:
-      # Necessary, your Bot token, you can get it from @BotFather
-      - TOKEN=''
-      # Get your Telegram ID
-      - ADMIN_IDS=''
-      - USER_IDS=''
-      # Set your default model [You can change it after, using /start -> Change Model]
-      - INITMODEL=''
-    depends_on:
-      - ollama-server
+    env_file:
+      - ./.env
+  
   ollama-server:
-    image: ollama:/root/.ollama:latest
-    container_name: azura-db
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    volumes:
+      - ./ollama:/root/.ollama
+    
+    # Uncomment to enable NVIDIA GPU
+    # Otherwise runs on CPU only:
+
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
     restart: always
     ports:
       - '11434:11434'
