@@ -1,9 +1,10 @@
 from func.controller import *
-import asyncio, re
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import CommandStart
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import Message
+from aiogram.enums import ParseMode
 bot = Bot(token=token)
 dp = Dispatcher()
 builder = InlineKeyboardBuilder()
@@ -14,18 +15,18 @@ modelname = os.getenv('INITMODEL')
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     if message.from_user.id in allowed_ids:
-        await message.answer(
-            f"Welcome to Ollama-Telegram Bot, <b>{message.from_user.full_name}</b>!\nSource code: https://github.com/ruecat/ollama-telegram",
-            parse_mode="HTML", reply_markup=builder.as_markup(), disable_web_page_preview=True)
+        start_message = f"Welcome to OllamaTelegram Bot, ***{message.from_user.full_name}***!\nSource code: https://github.com/ruecat/ollama-telegram"
+        start_message_md = md_autofixer(start_message)
+        await message.answer(start_message_md, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=builder.as_markup(), disable_web_page_preview=True)
     else:
         await message.answer(
-            f"{message.from_user.full_name} - <code>[Auth-Blocked]</code>\nContact staff to whitelist you.",
-            parse_mode="HTML")
+            f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you",
+            parse_mode=ParseMode.MARKDOWN_V2)
 
 @dp.callback_query(lambda query: query.data == 'modelmanager')
 async def modelmanager_callback_handler(query: types.CallbackQuery):
     if query.from_user.id in admin_ids:
-        models = await fetcher()
+        models = await model_list()
         modelmanager_builder = InlineKeyboardBuilder()
         for model in models:
             modelname = model['name']
@@ -33,10 +34,7 @@ async def modelmanager_callback_handler(query: types.CallbackQuery):
             modelmanager_builder.row(
                 types.InlineKeyboardButton(text=modelname, callback_data=f"model_{modelname}")
             )
-            await query.message.edit_text(
-                "Choose model",
-                reply_markup=modelmanager_builder.as_markup()
-            )
+            await query.message.edit_text("Choose model", reply_markup=modelmanager_builder.as_markup())
     else:
         await query.answer("Access Denied")
 
@@ -76,7 +74,7 @@ async def handle_message(message: types.Message):
         full_response = ""
         sent_message = None
         last_sent_text = None
-        async for response_data in streamer(prompt, modelname):
+        async for response_data in generate(prompt, modelname):
             chunk = response_data.get("response", "")
             full_response += chunk
             full_response_stripped = full_response.strip()
@@ -96,11 +94,8 @@ async def handle_message(message: types.Message):
                     if sent_message:
                         await sent_message.edit_text(full_response_stripped)
                     else:
-                        sent_message = await message.answer(
-                            full_response_stripped)
-                format = re.sub(r'```(.*?)```', r'<pre>\1</pre>', full_response_stripped, flags=re.DOTALL)
-                await sent_message.edit_text(format + f"<pre>🪄 Current Model: {modelname}</pre>",
-                                             parse_mode="HTML")
+                        sent_message = await message.answer(full_response_stripped)
+                await sent_message.edit_text(md_autofixer(full_response_stripped + f"```CurrentModel {modelname}```"), parse_mode=ParseMode.MARKDOWN_V2)
                 break
 
 async def main():

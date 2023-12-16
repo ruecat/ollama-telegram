@@ -13,7 +13,7 @@ admin_ids = list(map(int, os.getenv('ADMIN_IDS', '').split(',')))
 # content = []
 
 
-async def fetcher():
+async def model_list():
     async with aiohttp.ClientSession() as session:
         url = f'http://{ollama_base_url}:11434/api/tags'
         async with session.get(url) as response:
@@ -24,7 +24,7 @@ async def fetcher():
                 return []
 
 
-async def streamer(prompt: str, modelname: str):
+async def generate(prompt: str, modelname: str):
     # try:
     async with aiohttp.ClientSession() as session:
         url = f'http://{ollama_base_url}:11434/api/generate'
@@ -44,3 +44,10 @@ async def streamer(prompt: str, modelname: str):
                     decoded_chunk = chunk.decode()
                     if decoded_chunk.strip():
                         yield json.loads(decoded_chunk)
+# Telegram-related
+def md_autofixer(text: str) -> str:
+    # In MarkdownV2, these characters must be escaped: _ * [ ] ( ) ~ ` > # + - = | { } . !
+    escape_chars = r'_[]()~>#+-=|{}.!'
+    # Use a backslash to escape special characters
+    return ''.join('\\' + char if char in escape_chars else char for char in text)
+
