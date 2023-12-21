@@ -20,8 +20,8 @@ async def command_start_handler(message: Message) -> None:
         await message.answer(start_message_md, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=builder.as_markup(), disable_web_page_preview=True)
     else:
         await message.answer(
-            f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you",
-            parse_mode=ParseMode.MARKDOWN_V2)
+            f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you", parse_mode=ParseMode.MARKDOWN_V2)
+        print(f"[Interactions] {message.from_user.username}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}")
 
 @dp.callback_query(lambda query: query.data == 'modelmanager')
 async def modelmanager_callback_handler(query: types.CallbackQuery):
