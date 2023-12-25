@@ -197,3 +197,6 @@ $RECYCLE.BIN/
 .directory
 .Trash-*
 .nfs*
+
+# OpenSSH Keys
+id_*

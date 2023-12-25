@@ -99,7 +99,7 @@ async def handle_message(message: types.Message):
                         await sent_message.edit_text(full_response_stripped)
                     else:
                         sent_message = await message.answer(full_response_stripped)
-                await sent_message.edit_text(md_autofixer(full_response_stripped + f"```CurrentModel {modelname}```"), parse_mode=ParseMode.MARKDOWN_V2)
+                await sent_message.edit_text(md_autofixer(full_response_stripped + f"\n\nCurrent Model: `{modelname}`"), parse_mode=ParseMode.MARKDOWN_V2)
                 break
 
 async def main():
