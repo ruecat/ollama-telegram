@@ -24,21 +24,16 @@ async def model_list():
                 return []
 
 
-async def generate(prompt: str, modelname: str):
+async def generate(payload: dict, modelname: str, prompt:str):
     # try:
     async with aiohttp.ClientSession() as session:
-        url = f'http://{ollama_base_url}:11434/api/generate'
-        # content.append(prompt)
-        # print(f'Content updated: {content}')
-        data = {
-            "model": modelname,
-            "prompt": prompt,
-            "stream": True,
-            # "context": content
-        }
-        print(f"DEBUG\n{modelname}\n{prompt}")
+        url = f'http://{ollama_base_url}:11434/api/chat'
+
+        print(f"DEBUG: {modelname}: {prompt}")
+        print(f"DEBUG: Payload = \n {payload}")
+
         # Stream from API
-        async with session.post(url, json=data) as response:
+        async with session.post(url, json=payload) as response:
             async for chunk in response.content:
                 if chunk:
                     decoded_chunk = chunk.decode()
