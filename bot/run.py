@@ -79,6 +79,10 @@ async def handle_message(message: types.Message):
             full_response += chunk
             full_response_stripped = full_response.strip()
 
+            # avoid Bad Request: message text is empty
+            if full_response_stripped == "":
+                continue
+
             if '.' in chunk or '\n' in chunk or '!' in chunk or '?' in chunk:
                 if sent_message:
                     if last_sent_text != full_response_stripped:
