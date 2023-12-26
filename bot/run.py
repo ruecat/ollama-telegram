@@ -1,7 +1,7 @@
 from func.controller import *
 import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters.command import CommandStart
+from aiogram.filters.command import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import Message
 from aiogram.enums import ParseMode
@@ -11,7 +11,12 @@ builder = InlineKeyboardBuilder()
 builder.row(types.InlineKeyboardButton(text="🤔️ Information", callback_data="info"),
             types.InlineKeyboardButton(text="⚙️ Settings", callback_data="modelmanager"))
 
+commands = [types.BotCommand(command="start", description="Start"),
+            types.BotCommand(command="reset", description="Reset Chat")]
+
+
 ACTIVE_CHATS = {}
+ACTIVE_CHATS_LOCK = contextLock()
 
 modelname = os.getenv('INITMODEL')
 @dp.message(CommandStart())
@@ -24,6 +29,16 @@ async def command_start_handler(message: Message) -> None:
         await message.answer(
             f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you", parse_mode=ParseMode.MARKDOWN_V2)
         print(f"[Interactions] {message.from_user.username}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}")
+
+@dp.message(Command("reset"))
+async def command_reset_handler(message: Message) -> None:
+    if message.from_user.id in allowed_ids:
+        if message.from_user.id in ACTIVE_CHATS:
+            async with ACTIVE_CHATS_LOCK:
+                ACTIVE_CHATS.pop(message.from_user.id)
+            print("DEBUG: Chat has been reset")
+            await bot.send_message(chat_id=message.chat.id, text="Chat has been reset",)
+
 
 @dp.callback_query(lambda query: query.data == 'modelmanager')
 async def modelmanager_callback_handler(query: types.CallbackQuery):
@@ -56,90 +71,93 @@ async def systeminfo_callback_handler(query: types.CallbackQuery):
         await query.answer("Access Denied")
 
 
-
 @dp.message()
 async def handle_message(message: types.Message):
-    botinfo = await bot.get_me()
-    is_allowed_user = message.from_user.id in allowed_ids
-    is_private_chat = message.chat.type == "private"
-    is_supergroup = message.chat.type == "supergroup"
-    bot_mentioned = any(
-        entity.type == "mention" and message.text[entity.offset:entity.offset + entity.length] == f"@{botinfo.username}"
-        for entity in message.entities or [])
-    if is_allowed_user and message.text and (is_private_chat or (is_supergroup and bot_mentioned)):
-        if is_supergroup and bot_mentioned:
-            cutmention = len(botinfo.username) + 2
-            prompt = message.text[cutmention:]  # + ""
-        else:
-            prompt = message.text
-        await bot.send_chat_action(message.chat.id, "typing")
-        full_response = ""
-        sent_message = None
-        last_sent_text = None
+    async with ACTIVE_CHATS_LOCK:
+        botinfo = await bot.get_me()
+        is_allowed_user = message.from_user.id in allowed_ids
+        is_private_chat = message.chat.type == "private"
+        is_supergroup = message.chat.type == "supergroup"
+        bot_mentioned = any(
+            entity.type == "mention" and message.text[entity.offset:entity.offset + entity.length] == f"@{botinfo.username}"
+            for entity in message.entities or [])
+        if is_allowed_user and message.text and (is_private_chat or (is_supergroup and bot_mentioned)):
+            if is_supergroup and bot_mentioned:
+                cutmention = len(botinfo.username) + 2
+                prompt = message.text[cutmention:]  # + ""
+            else:
+                prompt = message.text
+            await bot.send_chat_action(message.chat.id, "typing")
+            full_response = ""
+            sent_message = None
+            last_sent_text = None
 
-        # Add prompt to active chats object
-        if ACTIVE_CHATS.get(message.from_user.id) is None:
-            ACTIVE_CHATS[message.from_user.id] = {
-                "model": modelname,
-                "messages": [
-                    {
-                        "role":"user",
-                        "content": prompt
-                    }
-                ],
-                "stream": True
-            }
-        else:
-            ACTIVE_CHATS[message.from_user.id]["messages"].append(
-                    {
-                        "role":"user",
-                        "content": prompt
-                    }
-                )
-        print(f"[Request]: Generating response for {prompt}")
-        payload = ACTIVE_CHATS[message.from_user.id]
-        async for response_data in generate(payload, modelname, prompt):
-            print(f"[DEBUG]: Response {response_data}")
-            msg = response_data.get("message")
-            if msg is None:
-                continue
-            chunk = msg.get("content", "")
-            full_response += chunk
-            full_response_stripped = full_response.strip()
-
-            # avoid Bad Request: message text is empty
-            if full_response_stripped == "":
-                continue
-
-            if '.' in chunk or '\n' in chunk or '!' in chunk or '?' in chunk:
-                if sent_message:
-                    if last_sent_text != full_response_stripped:
-                        await sent_message.edit_text(full_response_stripped)
-                        last_sent_text = full_response_stripped
-                else:
-                    sent_message = await message.answer(
-                        full_response_stripped)
-                    last_sent_text = full_response_stripped
-
-            if response_data.get("done"):
-                if full_response_stripped and last_sent_text != full_response_stripped:
-                    if sent_message:
-                        await sent_message.edit_text(full_response_stripped)
-                    else:
-                        sent_message = await message.answer(full_response_stripped)
-                await sent_message.edit_text(md_autofixer(full_response_stripped + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get("total_duration")/10e9:.2f}s"), parse_mode=ParseMode.MARKDOWN_V2)
-
-                # Add response to active chats object
+            # Add prompt to active chats object
+            if ACTIVE_CHATS.get(message.from_user.id) is None:
+                ACTIVE_CHATS[message.from_user.id] = {
+                    "model": modelname,
+                    "messages": [
+                        {
+                            "role":"user",
+                            "content": prompt
+                        }
+                    ],
+                    "stream": True
+                }
+            else:
                 ACTIVE_CHATS[message.from_user.id]["messages"].append(
-                    {
-                        "role":"assistant",
-                        "content": full_response_stripped
-                    }
-                )
+                        {
+                            "role":"user",
+                            "content": prompt
+                        }
+                    )
+            print(f"[Request]: Generating response for {prompt}")
+            payload = ACTIVE_CHATS[message.from_user.id]
+            async for response_data in generate(payload, modelname, prompt):
+                print(f"[DEBUG]: Response {response_data}")
+                msg = response_data.get("message")
+                if msg is None:
+                    continue
+                chunk = msg.get("content", "")
+                full_response += chunk
+                full_response_stripped = full_response.strip()
 
-                break
+                # avoid Bad Request: message text is empty
+                if full_response_stripped == "":
+                    continue
+
+                if '.' in chunk or '\n' in chunk or '!' in chunk or '?' in chunk:
+                    if sent_message:
+                        if last_sent_text != full_response_stripped:
+                            await sent_message.edit_text(full_response_stripped)
+                            last_sent_text = full_response_stripped
+                    else:
+                        sent_message = await message.answer(
+                            full_response_stripped)
+                        last_sent_text = full_response_stripped
+
+                if response_data.get("done"):
+                    if full_response_stripped and last_sent_text != full_response_stripped:
+                        if sent_message:
+                            await sent_message.edit_text(full_response_stripped)
+                        else:
+                            sent_message = await message.answer(full_response_stripped)
+                    await sent_message.edit_text(md_autofixer(full_response_stripped + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get("total_duration")/10e9:.2f}s"), parse_mode=ParseMode.MARKDOWN_V2)
+
+                    # Add response to active chats object
+
+                    ACTIVE_CHATS[message.from_user.id]["messages"].append(
+                        {
+                            "role":"assistant",
+                            "content": full_response_stripped
+                        }
+                    )
+
+                    break
 
 async def main():
+    await bot.set_my_commands(commands)
+
     await dp.start_polling(bot, skip_update=True)
 
 

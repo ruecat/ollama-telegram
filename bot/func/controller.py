@@ -2,6 +2,8 @@ import aiohttp
 import json
 from dotenv import load_dotenv
 import os
+from asyncio import Lock
+
 
 load_dotenv()
 system_info = os.uname()
@@ -46,3 +48,12 @@ def md_autofixer(text: str) -> str:
     # Use a backslash to escape special characters
     return ''.join('\\' + char if char in escape_chars else char for char in text)
 
+
+class contextLock():
+    lock = Lock()
+
+    async def __aenter__(self):
+        await self.lock.acquire()
+
+    async def __aexit__(self, exc_type, exc_value, exc_traceback):
+        self.lock.release()
