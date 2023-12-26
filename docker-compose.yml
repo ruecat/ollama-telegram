@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: dockerfile
     container_name: ollama-telegram
-    restart: no
+    restart: on-failure
     env_file:
       - ./.env
   
