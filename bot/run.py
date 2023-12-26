@@ -11,6 +11,8 @@ builder = InlineKeyboardBuilder()
 builder.row(types.InlineKeyboardButton(text="🤔️ Information", callback_data="info"),
             types.InlineKeyboardButton(text="⚙️ Settings", callback_data="modelmanager"))
 
+ACTIVE_CHATS = {}
+
 modelname = os.getenv('INITMODEL')
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
@@ -74,8 +76,34 @@ async def handle_message(message: types.Message):
         full_response = ""
         sent_message = None
         last_sent_text = None
-        async for response_data in generate(prompt, modelname):
-            chunk = response_data.get("response", "")
+
+        # Add prompt to active chats object
+        if ACTIVE_CHATS.get(message.from_user.id) is None:
+            ACTIVE_CHATS[message.from_user.id] = {
+                "model": modelname,
+                "messages": [
+                    {
+                        "role":"user",
+                        "content": prompt
+                    }
+                ],
+                "stream": True
+            }
+        else:
+            ACTIVE_CHATS[message.from_user.id]["messages"].append(
+                    {
+                        "role":"user",
+                        "content": prompt
+                    }
+                )
+        print(f"[Request]: Generating response for {prompt}")
+        payload = ACTIVE_CHATS[message.from_user.id]
+        async for response_data in generate(payload, modelname, prompt):
+            print(f"[DEBUG]: Response {response_data}")
+            msg = response_data.get("message")
+            if msg is None:
+                continue
+            chunk = msg.get("content", "")
             full_response += chunk
             full_response_stripped = full_response.strip()
 
@@ -99,7 +127,16 @@ async def handle_message(message: types.Message):
                         await sent_message.edit_text(full_response_stripped)
                     else:
                         sent_message = await message.answer(full_response_stripped)
-                await sent_message.edit_text(md_autofixer(full_response_stripped + f"```CurrentModel {modelname}```"), parse_mode=ParseMode.MARKDOWN_V2)
+                await sent_message.edit_text(md_autofixer(full_response_stripped + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get("total_duration")/10e9:.2f}s"), parse_mode=ParseMode.MARKDOWN_V2)
+
+                # Add response to active chats object
+                ACTIVE_CHATS[message.from_user.id]["messages"].append(
+                    {
+                        "role":"assistant",
+                        "content": full_response_stripped
+                    }
+                )
+
                 break
 
 async def main():

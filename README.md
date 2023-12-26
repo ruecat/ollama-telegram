@@ -27,7 +27,7 @@ Here's features that you get out of the box:
 - [x] Proper Docker Config
 - [ ] Add more API-related functions [System Prompt Editor, Ollama Version fetcher, etc.]
 - [ ] Redis DB integration
-- [ ] Implement **history** [Bot can't remember more that 1 prompt]
+- [x] Implement **history** [Bot can't remember more that 1 prompt]
 
 ## Prerequisites
 - [Telegram-Bot Token](https://core.telegram.org/bots#6-botfather)
