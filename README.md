@@ -24,10 +24,10 @@ Here's features that you get out of the box:
 - [x] Mention [@] bot in group to receive answer
 
 ## Roadmap
-- [x] Proper Docker Config
+- [x] Docker Config by [StanleyOneG](https://github.com/StanleyOneG)
+- [x] History and `/reset` by [ShrirajHegde](https://github.com/ShrirajHegde)
 - [ ] Add more API-related functions [System Prompt Editor, Ollama Version fetcher, etc.]
 - [ ] Redis DB integration
-- [x] Implement **history** [Bot can't remember more that 1 prompt]
 
 ## Prerequisites
 - [Telegram-Bot Token](https://core.telegram.org/bots#6-botfather)
