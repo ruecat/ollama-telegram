@@ -70,9 +70,9 @@ async def modelmanager_callback_handler(query: types.CallbackQuery):
                     text=modelname, callback_data=f"model_{modelname}"
                 )
             )
-            await query.message.edit_text(
-                "Choose model", reply_markup=modelmanager_builder.as_markup()
-            )
+        await query.message.edit_text(
+            "Choose model", reply_markup=modelmanager_builder.as_markup()
+        )
     else:
         await query.answer("Access Denied")
 
