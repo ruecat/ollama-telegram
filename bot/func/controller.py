@@ -30,10 +30,6 @@ async def generate(payload: dict, modelname: str, prompt: str):
     # try:
     async with aiohttp.ClientSession() as session:
         url = f"http://{ollama_base_url}:11434/api/chat"
-
-        print(f"DEBUG: {modelname}: {prompt}")
-        print(f"DEBUG: Payload = \n {payload}")
-
         # Stream from API
         async with session.post(url, json=payload) as response:
             async for chunk in response.content:
