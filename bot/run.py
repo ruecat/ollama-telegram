@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
@@ -18,6 +19,7 @@ builder.row(
 commands = [
     types.BotCommand(command="start", description="Start"),
     types.BotCommand(command="reset", description="Reset Chat"),
+    types.BotCommand(command="getcontext", description="Get chat context json"),
 ]
 
 
@@ -58,6 +60,22 @@ async def command_reset_handler(message: Message) -> None:
             await bot.send_message(
                 chat_id=message.chat.id,
                 text="Chat has been reset",
+            )
+
+
+@dp.message(Command("getcontext"))
+async def command_get_context_handler(message: Message) -> None:
+    if message.from_user.id in allowed_ids:
+        if message.from_user.id in ACTIVE_CHATS:
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=f"```json\n{json.dumps(ACTIVE_CHATS.get(message.chat.id), indent=1)}```",
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
+        else:
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text="No chat history available for this user",
             )
 
 
@@ -102,7 +120,7 @@ async def systeminfo_callback_handler(query: types.CallbackQuery):
 
 @dp.message()
 async def handle_message(message: types.Message):
-    async with ACTIVE_CHATS_LOCK:
+    try:
         botinfo = await bot.get_me()
         is_allowed_user = message.from_user.id in allowed_ids
         is_private_chat = message.chat.type == "private"
@@ -128,19 +146,20 @@ async def handle_message(message: types.Message):
             sent_message = None
             last_sent_text = None
 
-            # Add prompt to active chats object
-            if ACTIVE_CHATS.get(message.from_user.id) is None:
-                ACTIVE_CHATS[message.from_user.id] = {
-                    "model": modelname,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "stream": True,
-                }
-            else:
-                ACTIVE_CHATS[message.from_user.id]["messages"].append(
-                    {"role": "user", "content": prompt}
-                )
+            async with ACTIVE_CHATS_LOCK:
+                # Add prompt to active chats object
+                if ACTIVE_CHATS.get(message.from_user.id) is None:
+                    ACTIVE_CHATS[message.from_user.id] = {
+                        "model": modelname,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "stream": True,
+                    }
+                else:
+                    ACTIVE_CHATS[message.from_user.id]["messages"].append(
+                        {"role": "user", "content": prompt}
+                    )
             print(f"[Request]: Generating response for {prompt}")
-            payload = ACTIVE_CHATS[message.from_user.id]
+            payload = ACTIVE_CHATS.get(message.from_user.id)
             async for response_data in generate(payload, modelname, prompt):
                 print(f"[DEBUG]: Response {response_data}")
                 msg = response_data.get("message")
@@ -160,7 +179,10 @@ async def handle_message(message: types.Message):
                             await sent_message.edit_text(full_response_stripped)
                             last_sent_text = full_response_stripped
                     else:
-                        sent_message = await message.answer(full_response_stripped)
+                        sent_message = await message.answer(
+                            full_response_stripped,
+                            reply_to_message_id=message.message_id,
+                        )
                         last_sent_text = full_response_stripped
 
                 if response_data.get("done"):
@@ -180,13 +202,24 @@ async def handle_message(message: types.Message):
                         parse_mode=ParseMode.MARKDOWN_V2,
                     )
 
-                    # Add response to active chats object
-
-                    ACTIVE_CHATS[message.from_user.id]["messages"].append(
-                        {"role": "assistant", "content": full_response_stripped}
-                    )
+                    async with ACTIVE_CHATS_LOCK:
+                        if ACTIVE_CHATS.get(message.from_user.id) is not None:
+                            # Add response to active chats object
+                            ACTIVE_CHATS[message.from_user.id]["messages"].append(
+                                {"role": "assistant", "content": full_response_stripped}
+                            )
+                        else:
+                            await bot.send_message(
+                                chat_id=message.chat.id, text="Chat was reset"
+                            )
 
                     break
+    except Exception as e:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
 
 
 async def main():
