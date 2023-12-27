@@ -217,7 +217,8 @@ async def handle_message(message: types.Message):
     except Exception as e:
         await bot.send_message(
             chat_id=message.chat.id,
-            text=f"""Error {e} occured\n```\n{traceback.format_exc()}\n```""",
+            text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
+            parse_mode=ParseMode.MARKDOWN_V2
         )
 
 
