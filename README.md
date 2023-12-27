@@ -79,6 +79,8 @@ git clone https://github.com/ruecat/ollama-telegram
 | `ADMIN_IDS` |                     Telegram user IDs of admins.<br/>These can change model and control the bot.                      |    Yes    |               | 1234567890<br/>**OR**<br/>1234567890,0987654321, etc. |
 | `USER_IDS`  |                       Telegram user IDs of regular users.<br/>These only can chat with the bot.                       |    Yes    |               | 1234567890<br/>**OR**<br/>1234567890,0987654321, etc. |
 | `INITMODEL` |                                                      Default LLM                                                      |    No     |   `llama2`    |        mistral:latest<br/>mistral:7b-instruct         |
+| `INITMODEL` |                                                  Your OllamaAPI URL                                                   |    No     |               |          localhost<br/>host.docker.internal           |
+
 
 ## Credits
 + [Ollama](https://github.com/jmorganca/ollama)
