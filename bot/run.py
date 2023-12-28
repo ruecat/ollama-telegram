@@ -43,6 +43,9 @@ async def command_start_handler(message: Message) -> None:
             f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you",
             parse_mode=ParseMode.MARKDOWN_V2,
         )
+        print(
+            f"[Interactions] {message.from_user.username}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}"
+        )
 
 
 @dp.message(Command("reset"))
@@ -51,6 +54,7 @@ async def command_reset_handler(message: Message) -> None:
         if message.from_user.id in ACTIVE_CHATS:
             async with ACTIVE_CHATS_LOCK:
                 ACTIVE_CHATS.pop(message.from_user.id)
+            print("DEBUG: Chat has been reset")
             await bot.send_message(
                 chat_id=message.chat.id,
                 text="Chat has been reset",
