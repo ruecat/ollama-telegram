@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
@@ -17,7 +18,8 @@ builder.row(
 
 commands = [
     types.BotCommand(command="start", description="Start"),
-    types.BotCommand(command="reset", description="Reset Chat")
+    types.BotCommand(command="reset", description="Reset Chat"),
+    types.BotCommand(command="getcontext", description="Get chat context json"),
 ]
 
 
@@ -58,6 +60,22 @@ async def command_reset_handler(message: Message) -> None:
             await bot.send_message(
                 chat_id=message.chat.id,
                 text="Chat has been reset",
+            )
+
+
+@dp.message(Command("getcontext"))
+async def command_get_context_handler(message: Message) -> None:
+    if message.from_user.id in allowed_ids:
+        if message.from_user.id in ACTIVE_CHATS:
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=f"```json\n{json.dumps(ACTIVE_CHATS.get(message.chat.id), indent=1)}```",
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
+        else:
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text="No chat history available for this user",
             )
 
 
@@ -102,6 +120,7 @@ async def systeminfo_callback_handler(query: types.CallbackQuery):
 
 @dp.message()
 async def handle_message(message: types.Message):
+    try:
         botinfo = await bot.get_me()
         is_allowed_user = message.from_user.id in allowed_ids
         is_private_chat = message.chat.type == "private"
@@ -139,8 +158,10 @@ async def handle_message(message: types.Message):
                     ACTIVE_CHATS[message.from_user.id]["messages"].append(
                         {"role": "user", "content": prompt}
                     )
+            print(f"[Request]: Generating response for {prompt}")
             payload = ACTIVE_CHATS.get(message.from_user.id)
             async for response_data in generate(payload, modelname, prompt):
+                print(f"[DEBUG]: Response {response_data}")
                 msg = response_data.get("message")
                 if msg is None:
                     continue
@@ -193,6 +214,12 @@ async def handle_message(message: types.Message):
                             )
 
                     break
+    except Exception as e:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
 
 
 async def main():
