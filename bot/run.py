@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
@@ -17,7 +18,8 @@ builder.row(
 
 commands = [
     types.BotCommand(command="start", description="Start"),
-    types.BotCommand(command="reset", description="Reset Chat")
+    types.BotCommand(command="reset", description="Reset Chat"),
+    types.BotCommand(command="getcontext", description="Get chat context json"),
 ]
 
 
@@ -43,6 +45,9 @@ async def command_start_handler(message: Message) -> None:
             f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you",
             parse_mode=ParseMode.MARKDOWN_V2,
         )
+        logging.info(
+            f"[Interactions] {message.from_user.first_name} {message.from_user.last_name}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}"
+        )
 
 
 @dp.message(Command("reset"))
@@ -51,9 +56,30 @@ async def command_reset_handler(message: Message) -> None:
         if message.from_user.id in ACTIVE_CHATS:
             async with ACTIVE_CHATS_LOCK:
                 ACTIVE_CHATS.pop(message.from_user.id)
+            logging.info(f"Chat has been reset for {message.from_user.first_name}")
             await bot.send_message(
                 chat_id=message.chat.id,
                 text="Chat has been reset",
+            )
+
+
+@dp.message(Command("getcontext"))
+async def command_get_context_handler(message: Message) -> None:
+    if message.from_user.id in allowed_ids:
+        if message.from_user.id in ACTIVE_CHATS:
+            messages = ACTIVE_CHATS.get(message.chat.id)["messages"]
+            context = ""
+            for msg in messages:
+                context += f"*{msg['role'].capitalize()}*: {msg['content']}\n"
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=context,
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text="No chat history available for this user",
             )
 
 
@@ -98,6 +124,7 @@ async def systeminfo_callback_handler(query: types.CallbackQuery):
 
 @dp.message()
 async def handle_message(message: types.Message):
+    try:
         botinfo = await bot.get_me()
         is_allowed_user = message.from_user.id in allowed_ids
         is_private_chat = message.chat.type == "private"
@@ -135,6 +162,9 @@ async def handle_message(message: types.Message):
                     ACTIVE_CHATS[message.from_user.id]["messages"].append(
                         {"role": "user", "content": prompt}
                     )
+            logging.info(
+                f"[Request]: Processing '{prompt}' for {message.from_user.first_name} {message.from_user.last_name}"
+            )
             payload = ACTIVE_CHATS.get(message.from_user.id)
             async for response_data in generate(payload, modelname, prompt):
                 msg = response_data.get("message")
@@ -183,12 +213,21 @@ async def handle_message(message: types.Message):
                             ACTIVE_CHATS[message.from_user.id]["messages"].append(
                                 {"role": "assistant", "content": full_response_stripped}
                             )
+                            logging.info(
+                                f"[Response]: '{full_response_stripped}' for {message.from_user.first_name} {message.from_user.last_name}"
+                            )
                         else:
                             await bot.send_message(
                                 chat_id=message.chat.id, text="Chat was reset"
                             )
 
                     break
+    except Exception as e:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
+            parse_mode=ParseMode.MARKDOWN_V2,
+        )
 
 
 async def main():
