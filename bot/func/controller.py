@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from asyncio import Lock
 
@@ -13,6 +14,18 @@ allowed_ids = list(map(int, os.getenv("USER_IDS", "").split(",")))
 admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
 # Will be implemented soon
 # content = []
+
+log_level_str = os.getenv("LOG_LEVEL", "INFO")
+log_levels = list(logging._levelToName.values())
+# ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
+
+# Set default level to be INFO
+if log_level_str not in log_levels:
+    log_level = logging.DEBUG
+else:
+    log_level = logging.getLevelName(log_level_str)
+
+logging.basicConfig(level=log_level)
 
 
 async def model_list():
@@ -30,9 +43,6 @@ async def generate(payload: dict, modelname: str, prompt: str):
     # try:
     async with aiohttp.ClientSession() as session:
         url = f"http://{ollama_base_url}:11434/api/chat"
-
-        print(f"DEBUG: {modelname}: {prompt}")
-        print(f"DEBUG: Payload = \n {payload}")
 
         # Stream from API
         async with session.post(url, json=payload) as response:

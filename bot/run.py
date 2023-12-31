@@ -45,8 +45,8 @@ async def command_start_handler(message: Message) -> None:
             f"{message.from_user.full_name} [AuthBlocked]\nContact staff to whitelist you",
             parse_mode=ParseMode.MARKDOWN_V2,
         )
-        print(
-            f"[Interactions] {message.from_user.username}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}"
+        logging.info(
+            f"[Interactions] {message.from_user.first_name} {message.from_user.last_name}({message.from_user.id}) is not allowed to use this bot. Value in environment: {allowed_ids}"
         )
 
 
@@ -56,7 +56,7 @@ async def command_reset_handler(message: Message) -> None:
         if message.from_user.id in ACTIVE_CHATS:
             async with ACTIVE_CHATS_LOCK:
                 ACTIVE_CHATS.pop(message.from_user.id)
-            print("DEBUG: Chat has been reset")
+            logging.info(f"Chat has been reset for {message.from_user.first_name}")
             await bot.send_message(
                 chat_id=message.chat.id,
                 text="Chat has been reset",
@@ -67,10 +67,14 @@ async def command_reset_handler(message: Message) -> None:
 async def command_get_context_handler(message: Message) -> None:
     if message.from_user.id in allowed_ids:
         if message.from_user.id in ACTIVE_CHATS:
+            messages = ACTIVE_CHATS.get(message.chat.id)["messages"]
+            context = ""
+            for msg in messages:
+                context += f"*{msg['role'].capitalize()}*: {msg['content']}\n"
             await bot.send_message(
                 chat_id=message.chat.id,
-                text=f"```json\n{json.dumps(ACTIVE_CHATS.get(message.chat.id), indent=1)}```",
-                parse_mode=ParseMode.MARKDOWN_V2,
+                text=context,
+                parse_mode=ParseMode.MARKDOWN,
             )
         else:
             await bot.send_message(
@@ -158,10 +162,11 @@ async def handle_message(message: types.Message):
                     ACTIVE_CHATS[message.from_user.id]["messages"].append(
                         {"role": "user", "content": prompt}
                     )
-            print(f"[Request]: Generating response for {prompt}")
+            logging.info(
+                f"[Request]: Processing '{prompt}' for {message.from_user.first_name} {message.from_user.last_name}"
+            )
             payload = ACTIVE_CHATS.get(message.from_user.id)
             async for response_data in generate(payload, modelname, prompt):
-                print(f"[DEBUG]: Response {response_data}")
                 msg = response_data.get("message")
                 if msg is None:
                     continue
@@ -208,6 +213,9 @@ async def handle_message(message: types.Message):
                             ACTIVE_CHATS[message.from_user.id]["messages"].append(
                                 {"role": "assistant", "content": full_response_stripped}
                             )
+                            logging.info(
+                                f"[Response]: '{full_response_stripped}' for {message.from_user.first_name} {message.from_user.last_name}"
+                            )
                         else:
                             await bot.send_message(
                                 chat_id=message.chat.id, text="Chat was reset"
@@ -218,7 +226,7 @@ async def handle_message(message: types.Message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
-            parse_mode=ParseMode.MARKDOWN_V2
+            parse_mode=ParseMode.MARKDOWN_V2,
         )
 
 
