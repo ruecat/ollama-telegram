@@ -8,12 +8,6 @@
     <b>Chat with your LLM, using Telegram bot!</b><br>
     <b>Feel free to contribute!</b><br>
   </p>
-  <br>
-  <p align="center">
-    <img src="https://img.shields.io/docker/pulls/ruecat/ollama-aiogram?style=for-the-badge"><br>
-    <img src="https://img.shields.io/github/downloads/ruecat/ollama-telegram/total?style=for-the-badge&label=GitHub Downloads&color=52489C">
-  </p>
-  <br>
 </div>
 
 ## Features
