@@ -9,6 +9,7 @@ ARG PYTHONPATH_=${APPHOMEDIR}
 WORKDIR /${APPHOMEDIR}
 
 COPY requirements.txt requirements.txt
+COPY ./bot /${APPHOMEDIR}
 
 RUN \
     apt update -y && apt upgrade -y \
@@ -17,8 +18,6 @@ RUN \
     && groupadd --gid "$USER_GID" "$USERNAME" \
     && useradd --uid "$USER_UID" --gid "$USER_GID" -m "$USERNAME" -d /"$APPHOMEDIR" \
     && chown "$USERNAME:$USERNAME" -R /"$APPHOMEDIR"
-
-COPY ./bot /${APPHOMEDIR}
 
 USER ${USERNAME}
 
