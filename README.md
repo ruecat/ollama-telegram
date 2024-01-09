@@ -10,8 +10,7 @@
   </p>
   <br>
   <p align="center">
-    <img src="https://img.shields.io/docker/pulls/ruecat/ollama-telegram?style=for-the-badge"><br>
-    <img src="https://img.shields.io/github/downloads/ruecat/ollama-telegram/total?style=for-the-badge&label=GitHub Downloads&color=52489C">
+    <img src="https://img.shields.io/docker/pulls/ruecat/ollama-telegram?style=for-the-badge">
   </p>
   <br>
 </div>
@@ -24,10 +23,11 @@ Here's features that you get out of the box:
 - [x] Mention [@] bot in group to receive answer
 
 ## Roadmap
-- [x] Docker Config by [StanleyOneG](https://github.com/StanleyOneG)
+- [x] Docker config & automated tags by [StanleyOneG](https://github.com/StanleyOneG), [ShrirajHegde](https://github.com/ShrirajHegde)
 - [x] History and `/reset` by [ShrirajHegde](https://github.com/ShrirajHegde)
 - [ ] Add more API-related functions [System Prompt Editor, Ollama Version fetcher, etc.]
 - [ ] Redis DB integration
+- [ ] Update bot UI
 
 ## Prerequisites
 - [Telegram-Bot Token](https://core.telegram.org/bots#6-botfather)
