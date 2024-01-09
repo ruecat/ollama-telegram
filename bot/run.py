@@ -202,7 +202,7 @@ async def handle_message(message: types.Message):
                     await sent_message.edit_text(
                         md_autofixer(
                             full_response_stripped
-                            + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get('total_duration')/10e9:.2f}s"
+                            + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get('total_duration')/1e9:.2f}s"
                         ),
                         parse_mode=ParseMode.MARKDOWN_V2,
                     )
