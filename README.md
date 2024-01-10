@@ -51,7 +51,48 @@ pip install -r requirements.txt
 ```
 python3 run.py
 ```
-## Installation (Docker-Compose)
+## Installation (Docker Image)
+The official image is available at dockerhub: [ruecat/ollama-telegram](https://hub.docker.com/r/ruecat/ollama-telegram)
+
++ Download [.env.example](https://github.com/ruecat/ollama-telegram/blob/main/.env.example) file, rename it to .env and populate the variables.
++ Create `docker-compose.yml` (optionally: uncomment GPU part of the file to enable Nvidia GPU)
+```yml
+version: '3.8'
+services:
+  ollama-telegram:
+    image: ruecat/ollama-telegram
+    container_name: ollama-telegram
+    restart: on-failure
+    env_file:
+      - ./.env
+  
+  ollama-server:
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    volumes:
+      - ./ollama:/root/.ollama
+    
+    # Uncomment to enable NVIDIA GPU
+    # Otherwise runs on CPU only:
+
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+    restart: always
+    ports:
+      - '11434:11434'
+```
++ Start the containers
+```sh
+docker compose up -d
+```
+
+## Installation (Build your own Docker image)
 + Clone Repository
 ```
 git clone https://github.com/ruecat/ollama-telegram
