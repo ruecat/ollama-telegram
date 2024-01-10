@@ -35,22 +35,22 @@ Here's features that you get out of the box:
 ## Installation (Non-Docker)
 + Install latest [Python](https://python.org/downloads)
 + Clone Repository
-```
-git clone https://github.com/ruecat/ollama-telegram
-```
+    ```
+    git clone https://github.com/ruecat/ollama-telegram
+    ```
 + Install requirements from requirements.txt
-```
-pip install -r requirements.txt
-```
+    ```
+    pip install -r requirements.txt
+    ```
 + Enter all values in .env.example
 
 + Rename .env.example -> .env
 
 + Launch bot
 
-```
-python3 run.py
-```
+    ```
+    python3 run.py
+    ```
 ## Installation (Docker Image)
 The official image is available at dockerhub: [ruecat/ollama-telegram](https://hub.docker.com/r/ruecat/ollama-telegram)
 
@@ -98,9 +98,9 @@ The official image is available at dockerhub: [ruecat/ollama-telegram](https://h
 
 ## Installation (Build your own Docker image)
 + Clone Repository
-```
-git clone https://github.com/ruecat/ollama-telegram
-```
+    ```
+    git clone https://github.com/ruecat/ollama-telegram
+    ```
 
 + Enter all values in .env.example
 
@@ -108,14 +108,14 @@ git clone https://github.com/ruecat/ollama-telegram
 
 + Run ONE of the following docker compose commands to start:
     1. To run ollama in docker container (optionally: uncomment GPU part of docker-compose.yml file to enable Nvidia GPU)
-    ```
-    docker compose up --build -d
-    ```
+        ```
+        docker compose up --build -d
+        ```
 
     2. To run ollama from locally installed instance (mainly for **MacOS**, since docker image doesn't support Apple GPU acceleration yet):
-    ```
-    docker compose up --build -d ollama-telegram
-    ```
+        ```
+        docker compose up --build -d ollama-telegram
+        ```
 
 ## Environment Configuration
 |     Parameter     |                                                      Description                                                      | Required? | Default Value |                        Example                        |
