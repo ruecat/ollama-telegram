@@ -2,9 +2,7 @@
 version: '3.8'
 services:
   ollama-telegram:
-    build:
-      context: .
-      dockerfile: dockerfile
+    build: .
     container_name: ollama-telegram
     restart: on-failure
     env_file:
