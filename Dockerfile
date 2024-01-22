@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-alpine
 
 ARG APPHOMEDIR=code
 ARG USERNAME=user
@@ -11,13 +11,20 @@ WORKDIR /${APPHOMEDIR}
 COPY requirements.txt requirements.txt
 COPY ./bot /${APPHOMEDIR}
 
+# Configure app home directory
 RUN \
-    apt update -y && apt upgrade -y \
-    && python -m pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && groupadd --gid "$USER_GID" "$USERNAME" \
-    && useradd --uid "$USER_UID" --gid "$USER_GID" -m "$USERNAME" -d /"$APPHOMEDIR" \
+    addgroup -g "$USER_GID" "$USERNAME" \
+    && adduser --disabled-password -u "$USER_UID" -G "$USERNAME" -h /"$APPHOMEDIR" "$USERNAME" \
     && chown "$USERNAME:$USERNAME" -R /"$APPHOMEDIR"
+
+# Install dependency packages & upgrade pip
+RUN \
+    apk add --no-cache gcc g++ \
+    && python -m pip install --upgrade pip
+
+# Install required pip packages
+RUN \
+    pip install --no-cache-dir -r requirements.txt
 
 USER ${USERNAME}
 
