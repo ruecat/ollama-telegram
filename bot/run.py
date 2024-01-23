@@ -133,7 +133,7 @@ async def systeminfo_callback_handler(query: types.CallbackQuery):
 async def handle_message(message: types.Message):
     await get_bot_info()
     if message.chat.type == "private":
-        await ollama_request(message, bot)
+        await ollama_request(message)
     if message.chat.type == "supergroup" and message.text.startswith(mention):
         # Remove the mention from the message
         text_without_mention = message.text.replace(mention, "").strip()
@@ -144,10 +144,11 @@ async def handle_message(message: types.Message):
             date=message.date,
             chat=message.chat,
             text=text_without_mention
-        ), bot)
+        ))
 
 
-async def ollama_request(message: types.Message, bot: types.Bot):
+...
+async def ollama_request(message: types.Message):
     try:
         await bot.send_chat_action(message.chat.id, "typing")
         prompt = message.text or message.caption
@@ -194,11 +195,13 @@ async def ollama_request(message: types.Message, bot: types.Bot):
             if "." in chunk or "\n" in chunk or "!" in chunk or "?" in chunk:
                 if sent_message:
                     if last_sent_text != full_response_stripped:
-                        await sent_message.edit_text(full_response_stripped)
+                        await bot.edit_message_text(chat_id=message.chat.id, message_id=sent_message.message_id,
+                                                    text=full_response_stripped)
                         last_sent_text = full_response_stripped
                 else:
-                    sent_message = await message.answer(
-                        full_response_stripped,
+                    sent_message = await bot.send_message(
+                        chat_id=message.chat.id,
+                        text=full_response_stripped,
                         reply_to_message_id=message.message_id,
                     )
                     last_sent_text = full_response_stripped
@@ -209,11 +212,15 @@ async def ollama_request(message: types.Message, bot: types.Bot):
                         and last_sent_text != full_response_stripped
                 ):
                     if sent_message:
-                        await sent_message.edit_text(full_response_stripped)
+                        await bot.edit_message_text(chat_id=message.chat.id, message_id=sent_message.message_id,
+                                                    text=full_response_stripped)
                     else:
-                        sent_message = await message.answer(full_response_stripped)
-                await sent_message.edit_text(
-                    md_autofixer(
+                        sent_message = await bot.send_message(chat_id=message.chat.id,
+                                                                text=full_response_stripped)
+                await bot.edit_message_text(
+                    chat_id=message.chat.id,
+                    message_id=sent_message.message_id,
+                    text=md_autofixer(
                         full_response_stripped
                         + f"\n\nCurrent Model: `{modelname}`**\n**Generated in {response_data.get('total_duration') / 1e9:.2f}s"
                     ),
@@ -238,7 +245,7 @@ async def ollama_request(message: types.Message, bot: types.Bot):
     except Exception as e:
         await bot.send_message(
             chat_id=message.chat.id,
-            text=f"""Error occured\n```\n{traceback.format_exc()}\n```""",
+            text=f"""Error occurred\n```\n{traceback.format_exc()}\n```""",
             parse_mode=ParseMode.MARKDOWN_V2,
         )
 
