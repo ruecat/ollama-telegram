@@ -1,21 +1,22 @@
-import json
 import logging
 import os
-from asyncio import Lock
-
 import aiohttp
+import json
+from aiogram import types
+from asyncio import Lock
+from functools import wraps
 from dotenv import load_dotenv
 
+# --- Environment
 load_dotenv()
-system_info = os.uname()
+# --- Environment Checker
 token = os.getenv("TOKEN")
-ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 allowed_ids = list(map(int, os.getenv("USER_IDS", "").split(",")))
 admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
-# Will be implemented soon
-# content = []
-
+ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 log_level_str = os.getenv("LOG_LEVEL", "INFO")
+
+# --- Other
 log_levels = list(logging._levelToName.values())
 # ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
 
@@ -28,6 +29,7 @@ else:
 logging.basicConfig(level=log_level)
 
 
+# Ollama API
 async def model_list():
     async with aiohttp.ClientSession() as session:
         url = f"http://{ollama_base_url}:11434/api/tags"
@@ -53,7 +55,48 @@ async def generate(payload: dict, modelname: str, prompt: str):
                         yield json.loads(decoded_chunk)
 
 
-# Telegram-related
+# Aiogram functions & wraps
+def perms_allowed(func):
+    @wraps(func)
+    async def wrapper(message: types.Message = None, query: types.CallbackQuery = None):
+        user_id = message.from_user.id if message else query.from_user.id
+        if user_id in admin_ids or user_id in allowed_ids:
+            if message:
+                return await func(message)
+            elif query:
+                return await func(query=query)
+        else:
+            if message:
+                await message.answer("Access Denied")
+            elif query:
+                await query.answer("Access Denied")
+
+    return wrapper
+
+
+def perms_admins(func):
+    @wraps(func)
+    async def wrapper(message: types.Message = None, query: types.CallbackQuery = None):
+        user_id = message.from_user.id if message else query.from_user.id
+        if user_id in admin_ids:
+            if message:
+                return await func(message)
+            elif query:
+                return await func(query=query)
+        else:
+            if message:
+                await message.answer("Access Denied")
+                logging.info(
+                    f"[MSG] {message.from_user.first_name} {message.from_user.last_name}({message.from_user.id}) is not allowed to use this bot."
+                )
+            elif query:
+                await query.answer("Access Denied")
+                logging.info(
+                    f"[QUERY] {message.from_user.first_name} {message.from_user.last_name}({message.from_user.id}) is not allowed to use this bot."
+                )
+
+    return wrapper
+
 def md_autofixer(text: str) -> str:
     # In MarkdownV2, these characters must be escaped: _ * [ ] ( ) ~ ` > # + - = | { } . !
     escape_chars = r"_[]()~>#+-=|{}.!"
@@ -61,6 +104,7 @@ def md_autofixer(text: str) -> str:
     return "".join("\\" + char if char in escape_chars else char for char in text)
 
 
+# Context-Related
 class contextLock:
     lock = Lock()
 
