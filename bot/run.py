@@ -31,6 +31,13 @@ ACTIVE_CHATS_LOCK = contextLock()
 modelname = os.getenv("INITMODEL")
 mention = None
 
+# Telegram group types
+CHAT_TYPE_GROUP = "group"
+CHAT_TYPE_SUPERGROUP = "supergroup"
+
+def is_mentioned_in_group_or_supergroup(message):
+    return (message.chat.type in [CHAT_TYPE_GROUP, CHAT_TYPE_SUPERGROUP]
+            and message.text.startswith(mention))
 
 async def get_bot_info():
     global mention
@@ -134,7 +141,7 @@ async def handle_message(message: types.Message):
     await get_bot_info()
     if message.chat.type == "private":
         await ollama_request(message)
-    if message.chat.type == "supergroup" and message.text.startswith(mention):
+    if is_mentioned_in_group_or_supergroup(message):
         # Remove the mention from the message
         text_without_mention = message.text.replace(mention, "").strip()
         # Pass the modified text and bot instance to ollama_request
