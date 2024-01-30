@@ -10,7 +10,7 @@ import asyncio
 import traceback
 import io
 import base64
-
+import ollama
 bot = Bot(token=token)
 dp = Dispatcher()
 builder = InlineKeyboardBuilder()
@@ -97,7 +97,7 @@ async def command_get_context_handler(message: Message) -> None:
 
 @dp.callback_query(lambda query: query.data == "modelmanager")
 async def modelmanager_callback_handler(query: types.CallbackQuery):
-    models = await model_list()
+    models = ollama.list()["models"]
     modelmanager_builder = InlineKeyboardBuilder()
     for model in models:
         modelname = model["name"]
@@ -112,7 +112,7 @@ async def modelmanager_callback_handler(query: types.CallbackQuery):
             )
         )
     await query.message.edit_text(
-        f"Choose model:", reply_markup=modelmanager_builder.as_markup()
+        f"{len(models)} models available.\n🦙 = Regular\n🦙📷 = Multimodal", reply_markup=modelmanager_builder.as_markup()
     )
 
 
