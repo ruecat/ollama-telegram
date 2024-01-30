@@ -30,17 +30,6 @@ logging.basicConfig(level=log_level)
 
 
 # Ollama API
-async def model_list():
-    async with aiohttp.ClientSession() as session:
-        url = f"http://{ollama_base_url}:11434/api/tags"
-        async with session.get(url) as response:
-            if response.status == 200:
-                data = await response.json()
-                return data["models"]
-            else:
-                return []
-
-
 async def generate(payload: dict, modelname: str, prompt: str):
     # try:
     async with aiohttp.ClientSession() as session:
