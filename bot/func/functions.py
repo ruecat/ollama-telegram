@@ -70,8 +70,11 @@ def perms_allowed(func):
 def perms_admins(func):
     @wraps(func)
     async def wrapper(message: types.Message = None, query: types.CallbackQuery = None):
-        if message and message.chat and message.chat.type in ["supergroup", "group"]:
-            pass
+        logging.info(
+            f"{message}"
+        )
+        #if message and message.chat and message.chat.type in ["supergroup", "group"]:
+        #    pass
         user_id = message.from_user.id if message else query.from_user.id
         if user_id in admin_ids:
             if message:
