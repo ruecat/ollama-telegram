@@ -176,12 +176,12 @@ async def ollama_request(message: types.Message):
             if ACTIVE_CHATS.get(message.from_user.id) is None:
                 ACTIVE_CHATS[message.from_user.id] = {
                     "model": modelname,
-                    "messages": [{"role": "user", "content": prompt, "images": [image_base64]}],
+                    "messages": [{"role": "user", "content": prompt, "images": ([image_base64] if image_base64 else [])}],
                     "stream": True,
                 }
             else:
                 ACTIVE_CHATS[message.from_user.id]["messages"].append(
-                    {"role": "user", "content": prompt, "images": [image_base64]}
+                    {"role": "user", "content": prompt, "images": ([image_base64] if image_base64 else [])}
                 )
         logging.info(
             f"[Request]: Processing '{prompt}' for {message.from_user.first_name} {message.from_user.last_name}"
