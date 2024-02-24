@@ -159,7 +159,7 @@ async def ollama_request(message: types.Message):
     try:
         await bot.send_chat_action(message.chat.id, "typing")
         prompt = message.text or message.caption
-        image_base64 = ''
+        image_base64 = None
         if message.content_type == 'photo':
             image_buffer = io.BytesIO()
             await bot.download(
