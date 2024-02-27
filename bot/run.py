@@ -10,7 +10,6 @@ import asyncio
 import traceback
 import io
 import base64
-import ollama
 bot = Bot(token=token)
 dp = Dispatcher()
 builder = InlineKeyboardBuilder()
@@ -50,11 +49,10 @@ async def get_bot_info():
 # /start command
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    start_message = f"Welcome to OllamaTelegram Bot, ***{message.from_user.full_name}***!\nSource code: https://github.com/ruecat/ollama-telegram"
-    start_message_md = md_autofixer(start_message)
+    start_message = f"Welcome, <b>{message.from_user.full_name}</b>!\n<a href='https://github.com/ruecat/ollama-telegram'>Source Code</a>"
     await message.answer(
-        start_message_md,
-        parse_mode=ParseMode.MARKDOWN_V2,
+        start_message,
+        parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(),
         disable_web_page_preview=True,
     )
@@ -97,7 +95,7 @@ async def command_get_context_handler(message: Message) -> None:
 
 @dp.callback_query(lambda query: query.data == "modelmanager")
 async def modelmanager_callback_handler(query: types.CallbackQuery):
-    models = ollama.list()["models"]
+    models = await model_list()
     modelmanager_builder = InlineKeyboardBuilder()
     for model in models:
         modelname = model["name"]
@@ -126,11 +124,14 @@ async def model_callback_handler(query: types.CallbackQuery):
 
 @dp.callback_query(lambda query: query.data == "info")
 @perms_admins
-async def systeminfo_callback_handler(query: types.CallbackQuery):
+async def info_callback_handler(query: types.CallbackQuery):
+    print('info triggered.')
+    global modelname
+    print(modelname)
     await bot.send_message(
         chat_id=query.message.chat.id,
-        text=f"<b>📦 LLM</b>\n<code>Model: {modelname}</code>\n\n",
-        parse_mode="HTML",
+        text=f"<b>📦 LLM</b>\n<code>Model: {modelname}</code>",
+        parse_mode=ParseMode.HTML,
     )
 
 

@@ -1,14 +1,14 @@
 # WORK IN PROGRESS
 version: '3.8'
 services:
-  ollama-telegram:
+  ollama-tg:
     build: .
-    container_name: ollama-telegram
+    container_name: ollama-tg
     restart: on-failure
     env_file:
       - ./.env
   
-  ollama-server:
+  ollama-api:
     image: ollama/ollama:latest
     container_name: ollama-server
     volumes:

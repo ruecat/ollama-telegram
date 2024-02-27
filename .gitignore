@@ -1,5 +1,6 @@
-# Developer Container Protection
-dev-compose.yml
+# .ollama temp
+/ollama
+
 
 
 # Byte-compiled / optimized / DLL files

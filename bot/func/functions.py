@@ -6,7 +6,6 @@ from aiogram import types
 from asyncio import Lock
 from functools import wraps
 from dotenv import load_dotenv
-
 # --- Environment
 load_dotenv()
 # --- Environment Checker
@@ -30,6 +29,16 @@ logging.basicConfig(level=log_level)
 
 
 # Ollama API
+# Model List
+async def model_list():
+    async with aiohttp.ClientSession() as session:
+        url = f"http://{ollama_base_url}:11434/api/tags"
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data["models"]
+            else:
+                return []
 async def generate(payload: dict, modelname: str, prompt: str):
     # try:
     async with aiohttp.ClientSession() as session:
@@ -70,8 +79,6 @@ def perms_allowed(func):
 def perms_admins(func):
     @wraps(func)
     async def wrapper(message: types.Message = None, query: types.CallbackQuery = None):
-        if message and message.chat.type in ["supergroup", "group"]:
-            pass
         user_id = message.from_user.id if message else query.from_user.id
         if user_id in admin_ids:
             if message:
