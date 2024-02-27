@@ -2,7 +2,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters.command import Command, CommandStart
 from aiogram.types import Message
-from aiogram import F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from func.functions import *
 # Other
@@ -14,7 +13,7 @@ bot = Bot(token=token)
 dp = Dispatcher()
 builder = InlineKeyboardBuilder()
 builder.row(
-    types.InlineKeyboardButton(text="🤔️ Information", callback_data="info"),
+    types.InlineKeyboardButton(text="ℹ️ About", callback_data="info"),
     types.InlineKeyboardButton(text="⚙️ Settings", callback_data="modelmanager"),
 )
 
@@ -49,7 +48,7 @@ async def get_bot_info():
 # /start command
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    start_message = f"Welcome, <b>{message.from_user.full_name}</b>!\n<a href='https://github.com/ruecat/ollama-telegram'>Source Code</a>"
+    start_message = f"Welcome, <b>{message.from_user.full_name}</b>!"
     await message.answer(
         start_message,
         parse_mode=ParseMode.HTML,
@@ -125,13 +124,13 @@ async def model_callback_handler(query: types.CallbackQuery):
 @dp.callback_query(lambda query: query.data == "info")
 @perms_admins
 async def info_callback_handler(query: types.CallbackQuery):
-    print('info triggered.')
+    dotenv_model = os.getenv("INITMODEL")
     global modelname
-    print(modelname)
     await bot.send_message(
         chat_id=query.message.chat.id,
-        text=f"<b>📦 LLM</b>\n<code>Model: {modelname}</code>",
+        text=f"<b>About Models</b>\nCurrent model: <code>{modelname}</code>\nDefault model: <code>{dotenv_model}</code>\nThis project is under <a href='https://github.com/ruecat/ollama-telegram/blob/main/LICENSE'>MIT License.</a>\n<a href='https://github.com/ruecat/ollama-telegram'>Source Code</a>",
         parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
     )
 
 
