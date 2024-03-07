@@ -101,7 +101,11 @@ async def modelmanager_callback_handler(query: types.CallbackQuery):
         modelfamilies = ""
         if model["details"]["families"]:
             modelicon = {"llama": "🦙", "clip": "📷"}
-            modelfamilies = "".join([modelicon[family] for family in model['details']['families']])
+            try:
+                modelfamilies = "".join([modelicon[family] for family in model['details']['families']])
+            except KeyError as e:
+                # Use a default value when the key is not found
+                modelfamilies = f"✨"
         # Add a button for each model
         modelmanager_builder.row(
             types.InlineKeyboardButton(
