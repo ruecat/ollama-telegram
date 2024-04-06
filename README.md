@@ -125,6 +125,7 @@ The official image is available at dockerhub: [ruecat/ollama-telegram](https://h
 |    `USER_IDS`     |                       Telegram user IDs of regular users.<br/>These only can chat with the bot.                       |    Yes    |               | 1234567890<br/>**OR**<br/>1234567890,0987654321, etc. |
 |    `INITMODEL`    |                                                      Default LLM                                                      |    No     |   `llama2`    |        mistral:latest<br/>mistral:7b-instruct         |
 | `OLLAMA_BASE_URL` |                                                  Your OllamaAPI URL                                                   |    No     |               |          localhost<br/>host.docker.internal           |
+|   `OLLAMA_PORT`   |                                                  Your OllamaAPI port                                                  |    No     |     11434     |                                                       |
 
 
 ## Credits
