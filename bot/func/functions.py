@@ -13,6 +13,7 @@ token = os.getenv("TOKEN")
 allowed_ids = list(map(int, os.getenv("USER_IDS", "").split(",")))
 admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
 ollama_base_url = os.getenv("OLLAMA_BASE_URL")
+ollama_port = os.getenv("OLLAMA_PORT", "11434")
 log_level_str = os.getenv("LOG_LEVEL", "INFO")
 
 # --- Other
@@ -32,7 +33,7 @@ logging.basicConfig(level=log_level)
 # Model List
 async def model_list():
     async with aiohttp.ClientSession() as session:
-        url = f"http://{ollama_base_url}:11434/api/tags"
+        url = f"http://{ollama_base_url}:{ollama_port}/api/tags"
         async with session.get(url) as response:
             if response.status == 200:
                 data = await response.json()
@@ -42,7 +43,7 @@ async def model_list():
 async def generate(payload: dict, modelname: str, prompt: str):
     # try:
     async with aiohttp.ClientSession() as session:
-        url = f"http://{ollama_base_url}:11434/api/chat"
+        url = f"http://{ollama_base_url}:{ollama_port}/api/chat"
 
         # Stream from API
         async with session.post(url, json=payload) as response:
