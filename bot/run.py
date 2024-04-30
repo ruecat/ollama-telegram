@@ -155,7 +155,6 @@ async def handle_message(message: types.Message):
     if message.chat.type == "private":
         await ollama_request(message)
     if is_mentioned_in_group_or_supergroup(message):
-        print(message.content_type)
         # Remove the mention from the message
         if message.text is not None:
             text_without_mention = message.text.replace(mention, "").strip()
