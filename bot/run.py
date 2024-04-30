@@ -37,8 +37,6 @@ CHAT_TYPE_SUPERGROUP = "supergroup"
 
 
 def is_mentioned_in_group_or_supergroup(message):
-    #    return (message.chat.type in [CHAT_TYPE_GROUP, CHAT_TYPE_SUPERGROUP]
-    #            and message.text.startswith(mention))
     return message.chat.type in [CHAT_TYPE_GROUP, CHAT_TYPE_SUPERGROUP] and (
         (message.text is not None and message.text.startswith(mention))
         or (message.caption is not None and message.caption.startswith(mention))
