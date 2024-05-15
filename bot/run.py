@@ -8,6 +8,10 @@ import asyncio
 import traceback
 import io
 import base64
+import telegramify_markdown
+from telegramify_markdown.customize import markdown_symbol
+markdown_symbol.head_level_1 = "📌"  # If you want, Customizing the head level 1 symbol
+markdown_symbol.link = "🔗"  # If you want, Customizing the link symbol
 
 bot = Bot(token=token)
 dp = Dispatcher()
@@ -34,6 +38,11 @@ mention = None
 CHAT_TYPE_GROUP = "group"
 CHAT_TYPE_SUPERGROUP = "supergroup"
 
+def escape_markdown_v2(text):
+    # List of Markdown v2 special characters that need escaping
+    escape_chars = "_*[]()~`>#+-=|{}.!"
+    # Escaping each special character with a backslash
+    return ''.join(['\\' + char if char in escape_chars else char for char in text])
 
 def is_mentioned_in_group_or_supergroup(message):
     return message.chat.type in [CHAT_TYPE_GROUP, CHAT_TYPE_SUPERGROUP] and (
@@ -77,7 +86,7 @@ async def command_get_context_handler(message: Message) -> None:
             await bot.send_message(
                 chat_id=message.chat.id,
                 text=context,
-                parse_mode=ParseMode.MARKDOWN,
+                parse_mode=ParseMode.MARKDOWN_V2,
             )
         else:
             await bot.send_message(
@@ -185,12 +194,39 @@ async def add_prompt_to_active_chats(message, prompt, image_base64, modelname):
                 }
             )
 
+async def begin_response(message, init_response):
+    await bot.send_chat_action(message.chat.id, "typing")
+    init_response = init_response.strip()
+    if init_response == "":
+        return
+    text = telegramify_markdown.convert(init_response)
+    return await send_response(message, text)
+
+async def edit_response(message, follow_response):
+    follow_response = follow_response.strip()
+    if follow_response == "":
+        return
+    text = telegramify_markdown.convert(follow_response)
+    await bot.edit_message_text(
+            chat_id=message.chat.id,
+            message_id=message.message_id,
+            text=text,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+    return True
+
 async def handle_response(message, response_data, full_response):
     full_response_stripped = full_response.strip()
     if full_response_stripped == "":
         return
-    if response_data.get("done"):
+    if not response_data.get("done"):
+        await bot.send_chat_action(message.chat.id, "typing")
+        text = telegramify_markdown.convert(full_response_stripped)
+        await send_response(message, text)
+        return False
+    else:
         text = f"{full_response_stripped}\n\n⚙️ {modelname}\nGenerated in {response_data.get('total_duration') / 1e9:.2f}s."
+        text = telegramify_markdown.convert(text)
         await send_response(message, text)
         async with ACTIVE_CHATS_LOCK:
             if ACTIVE_CHATS.get(message.from_user.id) is not None:
@@ -203,19 +239,29 @@ async def handle_response(message, response_data, full_response):
         return True
     return False
 
+
 async def send_response(message, text):
+    bot_message = None
     if message.chat.id == message.from_user.id:
-        await bot.send_message(chat_id=message.chat.id, text=text)
+        bot_message = await bot.send_message(
+            chat_id=message.chat.id, 
+            text=text, 
+            parse_mode=ParseMode.MARKDOWN_V2)
     else:
-        await bot.edit_message_text(
+        bot_message = await bot.edit_message_text(
             chat_id=message.chat.id,
             message_id=message.message_id,
-            text=text
+            text=text,
+            parse_mode=ParseMode.MARKDOWN_V2
         )
+    return bot_message
+
 
 async def ollama_request(message: types.Message, prompt: str = None):
     try:
         full_response = ""
+        initial_response = True
+        chunk = ""
         await bot.send_chat_action(message.chat.id, "typing")
         image_base64 = await process_image(message)
         if prompt is None:
@@ -230,11 +276,19 @@ async def ollama_request(message: types.Message, prompt: str = None):
             msg = response_data.get("message")
             if msg is None:
                 continue
-            chunk = msg.get("content", "")
-            full_response += chunk
+            token = msg.get("content", "")
+            chunk += token
+            # print('token: ', token.encode())
 
-            if any([c in chunk for c in ".\n!?"]) or response_data.get("done"):
-                if await handle_response(message, response_data, full_response):
+            if any([c in token for c in ".\n!?"]) or response_data.get("done"):
+                full_response += chunk
+                print('chunk: ', chunk)
+                chunk = ""
+                if initial_response and not response_data.get("done"):
+                    initial_response = False
+                    message = await begin_response(message, full_response)
+                elif await handle_response(message, response_data, full_response):
+                    print('message is done!')
                     break
 
     except Exception as e:
