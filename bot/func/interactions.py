@@ -4,6 +4,7 @@ import os
 import aiohttp
 import json
 from aiogram import types
+from aiohttp import ClientTimeout
 from asyncio import Lock
 from functools import wraps
 from dotenv import load_dotenv
@@ -15,6 +16,7 @@ ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 ollama_port = os.getenv("OLLAMA_PORT", "11434")
 log_level_str = os.getenv("LOG_LEVEL", "INFO")
 log_levels = list(logging._levelToName.values())
+timeout = os.getenv("TIMEOUT")
 if log_level_str not in log_levels:
     log_level = logging.DEBUG
 else:
@@ -30,7 +32,8 @@ async def model_list():
             else:
                 return []
 async def generate(payload: dict, modelname: str, prompt: str):
-    async with aiohttp.ClientSession() as session:
+    timeout = ClientTimeout(total=timeout)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         url = f"http://{ollama_base_url}:{ollama_port}/api/chat"
 
         try:
