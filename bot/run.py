@@ -8,7 +8,6 @@ import asyncio
 import traceback
 import io
 import base64
-
 bot = Bot(token=token)
 dp = Dispatcher()
 start_kb = InlineKeyboardBuilder()
