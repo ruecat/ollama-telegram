@@ -126,6 +126,7 @@ The official image is available at dockerhub: [ruecat/ollama-telegram](https://h
 |    `INITMODEL`    |                                                      Default LLM                                                      |    No     |   `llama2`    |        mistral:latest<br/>mistral:7b-instruct         |
 | `OLLAMA_BASE_URL` |                                                  Your OllamaAPI URL                                                   |    No     |               |          localhost<br/>host.docker.internal           |
 |   `OLLAMA_PORT`   |                                                  Your OllamaAPI port                                                  |    No     |     11434     |                                                       |
+|   `TIMEOUT`       |                                                  The timeout in seconds for generating responses                      |    No     |     3000      |                                                       |
 
 
 ## Credits
