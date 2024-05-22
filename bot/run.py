@@ -203,7 +203,8 @@ async def handle_response(message, response_data, full_response):
     return False
 
 async def send_response(message, text):
-    if message.chat.id == message.from_user.id:
+    # A negative message.chat.id is a group message
+    if message.chat.id < 0 or message.chat.id == message.from_user.id:
         await bot.send_message(chat_id=message.chat.id, text=text)
     else:
         await bot.edit_message_text(
