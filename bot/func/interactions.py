@@ -15,6 +15,7 @@ admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
 ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 ollama_port = os.getenv("OLLAMA_PORT", "11434")
 log_level_str = os.getenv("LOG_LEVEL", "INFO")
+allow_all_users_in_groups = bool(int(os.getenv("ALLOW_ALL_USERS_IN_GROUPS", "0")))
 log_levels = list(logging._levelToName.values())
 timeout = os.getenv("TIMEOUT", "3000")
 if log_level_str not in log_levels:
@@ -66,6 +67,8 @@ def perms_allowed(func):
         else:
             if message:
                 if message and message.chat.type in ["supergroup", "group"]:
+                    if allow_all_users_in_groups:
+                        return await func(message)
                     return
                 await message.answer("Access Denied")
             elif query:
