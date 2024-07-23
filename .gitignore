@@ -201,3 +201,7 @@ $RECYCLE.BIN/
 
 # OpenSSH Keys
 id_*
+
+
+# user dn
+users.db

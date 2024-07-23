@@ -3,14 +3,16 @@ import logging
 import os
 import aiohttp
 import json
+import sqlite3
 from aiogram import types
 from aiohttp import ClientTimeout
 from asyncio import Lock
 from functools import wraps
+# from bot.run import load_allowed_ids_from_db
 from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv("TOKEN")
-allowed_ids = list(map(int, os.getenv("USER_IDS", "").split(",")))
+#allowed_ids = list(map(int, os.getenv("USER_IDS", "").split(",")))
 admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
 ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 ollama_port = os.getenv("OLLAMA_PORT", "11434")
@@ -54,6 +56,36 @@ async def generate(payload: dict, modelname: str, prompt: str):
                             yield json.loads(line)
         except aiohttp.ClientError as e:
             print(f"Error during request: {e}")
+
+def load_allowed_ids_from_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id FROM users")
+    user_ids = [row[0] for row in c.fetchall()]
+    conn.close()
+    return user_ids
+
+allowed_ids = load_allowed_ids_from_db()
+
+def get_all_users_from_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id, name FROM users")
+    users = c.fetchall()
+    conn.close()
+    return users
+
+def remove_user_from_db(user_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    removed = c.rowcount > 0
+    conn.commit()
+    conn.close()
+    if removed:
+        global allowed_ids
+        allowed_ids = [id for id in allowed_ids if id != user_id]
+    return removed
 
 def perms_allowed(func):
     @wraps(func)
