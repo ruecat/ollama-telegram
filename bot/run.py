@@ -182,7 +182,7 @@ def format_thread_for_prompt(thread):
         content = msg.text or msg.caption or "[No text content]"
         prompt += f"{sender}: {content}\n\n"
     
-    prompt += "Учитывай историю при ответе"
+    prompt += "History:"
     return prompt
 
 async def process_image(message):
