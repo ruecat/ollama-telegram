@@ -237,12 +237,13 @@ async def handle_response(message, response_data, full_response):
 async def send_response(message, text):
     # A negative message.chat.id is a group message
     if message.chat.id < 0 or message.chat.id == message.from_user.id:
-        await bot.send_message(chat_id=message.chat.id, text=text)
+        await bot.send_message(chat_id=message.chat.id, text=text,parse_mode=ParseMode.MARKDOWN)
     else:
         await bot.edit_message_text(
             chat_id=message.chat.id,
             message_id=message.message_id,
-            text=text
+            text=text,
+            parse_mode=ParseMode.MARKDOWN,
         )
 
 async def ollama_request(message: types.Message, prompt: str = None):
