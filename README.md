@@ -114,7 +114,7 @@ The official image is available at dockerhub: [ruecat/ollama-telegram](https://h
 
     2. To run ollama from locally installed instance (mainly for **MacOS**, since docker image doesn't support Apple GPU acceleration yet):
         ```
-        docker compose up --build -d ollama-telegram
+        docker compose up --build -d ollama-tg
         ```
 
 ## Environment Configuration
