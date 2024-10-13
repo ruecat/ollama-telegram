@@ -65,7 +65,6 @@ def load_allowed_ids_from_db():
     conn.close()
     return user_ids
 
-allowed_ids = load_allowed_ids_from_db()
 
 def get_all_users_from_db():
     conn = sqlite3.connect('users.db')
