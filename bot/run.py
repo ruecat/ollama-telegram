@@ -14,7 +14,6 @@ dp = Dispatcher()
 start_kb = InlineKeyboardBuilder()
 settings_kb = InlineKeyboardBuilder()
 
-
 start_kb.row(
     types.InlineKeyboardButton(text="ℹ️ About", callback_data="about"),
     types.InlineKeyboardButton(text="⚙️ Settings", callback_data="settings"),
@@ -61,6 +60,7 @@ def init_db():
     # Load user IDs from the database and update allowed_ids
     # db_user_ids = load_allowed_ids_from_db()
     # allowed_ids.extend([user_id for user_id in db_user_ids if user_id not in allowed_ids])
+
 
 def register_user(user_id, user_name):
     conn = sqlite3.connect('users.db')
@@ -363,6 +363,8 @@ async def ollama_request(message: types.Message, prompt: str = None):
 
 async def main():
     init_db()
+    allowed_ids = load_allowed_ids_from_db()
+    print(f"allowed_ids: {allowed_ids}")
     await bot.set_my_commands(commands)
     await dp.start_polling(bot, skip_update=True)
 
